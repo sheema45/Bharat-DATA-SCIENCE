@@ -1,0 +1,35 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+df = pd.read_csv("C:/Users/Lenovo/Desktop/train.csv")
+df
+features = ['Pclass', 'Sex', 'Age', 'SibSp', 'Parch']
+df = df[features + ['Survived']].dropna()
+df
+le = LabelEncoder()
+df['Sex'] = le.fit_transform(df['Sex'])
+le
+X = df[features]
+y = df['Survived']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+x
+y
+clf = RandomForestClassifier(random_state=42)
+clf
+clf.fit(X_train, y_train)
+y_pred = clf.predict(X_test)
+y_pred
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {accuracy:.2f}")
+fig = plt.figure(figsize=(10,5))
+df_age = df.dropna(subset=['Age'])
+df_age
+plt.hist(df_age['Age'], bins=20, edgecolor='black')
+plt.xlabel('Age')
+plt.ylabel('Count')
+plt.title('Age Distribution of Passengers')
+plt.show()

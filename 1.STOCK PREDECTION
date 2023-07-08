@@ -1,0 +1,56 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import MinMaxScaler
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense
+df = pd.read_csv('AAPL.csv')
+df
+df['Date'] = pd.to_datetime(df['Date'])
+df.set_index('Date', inplace=True)
+data = df['Close'].values.reshape(-1, 1)
+data
+scaler = MinMaxScaler(feature_range=(0, 1))
+scaled_data = scaler.fit_transform(data)
+train_size = int(len(scaled_data) * 0.8)
+train_data = scaled_data[:train_size]
+test_data = scaled_data[train_size:]
+def prepare_data(data, window_size):
+    X, y = [], []
+    for i in range(len(data) - window_size):
+        X.append(data[i:i+window_size])
+        y.append(data[i+window_size])
+    return np.array(X), np.array(y)
+    window_size = 10
+X_train, y_train = prepare_data(train_data, window_size)
+X_test, y_test = prepare_data(test_data, window_size)
+x_train
+x_test
+y_train
+y_test
+model = Sequential()
+model.add(LSTM(50, activation='relu', input_shape=(window_size, 1)))
+model.add(Dense(1))
+model.compile(optimizer='adam', loss='mean_squared_error')
+model.fit(X_train, y_train, epochs=50, batch_size=32)
+X_train = np.reshape(X_train, (X_train.shape[0], window_size, 1))
+X_test = np.reshape(X_test, (X_test.shape[0], window_size, 1))
+model = Sequential()
+model.add(LSTM(50, activation='relu', input_shape=(window_size, 1)))
+model.add(Dense(1))
+model.compile(optimizer='adam', loss='mean_squared_error')
+train_predictions = model.predict(X_train)
+test_predictions = model.predict(X_test)
+train_predictions = scaler.inverse_transform(train_predictions)
+y_train = scaler.inverse_transform(y_train.reshape(-1, 1))
+test_predictions = scaler.inverse_transform(test_predictions)
+y_test = scaler.inverse_transform(y_test.reshape(-1, 1))
+plt.figure(figsize=(12, 6))
+plt.plot(df.index[:-window_size], data[:-window_size], label='Actual')
+plt.plot(df.index[window_size:train_size], train_predictions, label='Training Predictions')
+plt.plot(df.index[train_size+window_size:], test_predictions, label='Testing Predictions')
+plt.xlabel('Date')
+plt.ylabel('Stock Price')
+plt.title('AAPL Stock Price Prediction')
+plt.legend()
+plt.show()
